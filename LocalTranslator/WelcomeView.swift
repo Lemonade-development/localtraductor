@@ -225,7 +225,7 @@ struct WelcomeRootView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "cpu")
                         .font(.system(size: 11, weight: .semibold))
-                    Text("Modelo: Qwen3-4B (2.5 GB)")
+                    Text("Modelo: Hy-MT2-1.8B (1 GB)")
                         .font(.subheadline)
                         .fontWeight(.medium)
                 }
@@ -262,7 +262,7 @@ struct WelcomeRootView: View {
                     }
                     startDownload()
                 } label: {
-                    Text("Descargar Qwen3-4B")
+                    Text("Descargar Hy-MT2")
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
                 }
@@ -282,7 +282,7 @@ struct WelcomeRootView: View {
                 .controlSize(.large)
                 .buttonStyle(.bordered)
 
-                // Salida discreta para quien no quiera descargar 2.5 GB:
+                // Salida discreta para quien no quiera descargar el modelo:
                 // termina la onboarding usando el traductor del sistema.
                 // A propósito sin protagonismo (caption, estilo enlace):
                 // el camino principal sigue siendo descargar el modelo.
@@ -320,13 +320,13 @@ struct WelcomeRootView: View {
                 Image(systemName: "sparkles")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Color.accentColor)
-                Text("¿Por qué elegimos Qwen3-4B?")
+                Text("¿Por qué elegimos Hy-MT2?")
                     .font(.headline)
             }
 
             whyBullet(
                 title: "Ligero pero potente",
-                detail: "Con 4 mil millones de parámetros y cuantizado a 2.5 GB, ofrece un excelente equilibrio entre velocidad y calidad de traducción."
+                detail: "Con 1.800 millones de parámetros y cuantizado a 1 GB, es un modelo especializado en traducción: rápido, ligero y de gran calidad."
             )
             whyBullet(
                 title: "Excelente en multilingüe",
@@ -362,7 +362,7 @@ struct WelcomeRootView: View {
                           subtitle: "Ningún dato sale de tu Mac")
             confirmBullet(systemName: "clock.fill",
                           title: "Tiempo estimado",
-                          subtitle: "3 a 8 minutos (depende de tu conexión)")
+                          subtitle: "1 a 4 minutos (depende de tu conexión)")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -370,7 +370,7 @@ struct WelcomeRootView: View {
         .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    /// Bullet de la tarjeta "¿Por qué Qwen3-4B?": título en bold y un
+    /// Bullet de la tarjeta "¿Por qué Hy-MT2?": título en bold y un
     /// detalle más largo debajo, en color secundario.
     private func whyBullet(title: LocalizedStringKey, detail: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 8) {
@@ -436,7 +436,7 @@ struct WelcomeRootView: View {
                 runCompletionTransition()
             }
 
-            Text(isReady ? "¡Listo!" : "Descargando Qwen3-4B")
+            Text(isReady ? "¡Listo!" : "Descargando Hy-MT2")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .multilineTextAlignment(.center)
@@ -444,8 +444,8 @@ struct WelcomeRootView: View {
 
             VStack(spacing: 8) {
                 Text(isReady
-                     ? "Qwen3-4B ya está en tu Mac. Ya puedes empezar a traducir."
-                     : "Estamos descargando **Qwen3-4B** directamente en tu Mac.")
+                     ? "Hy-MT2 ya está en tu Mac. Ya puedes empezar a traducir."
+                     : "Estamos descargando **Hy-MT2** directamente en tu Mac.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.primary.opacity(0.85))
 

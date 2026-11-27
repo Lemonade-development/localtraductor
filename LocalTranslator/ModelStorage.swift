@@ -8,7 +8,7 @@ import OSLog
 /// Hugging Face, que en apps sandboxed resuelve a
 /// `Library/Caches/huggingface/hub` dentro del contenedor. Eso **no** nos
 /// sirve: macOS se reserva el derecho a vaciar `Library/Caches` bajo presión
-/// de disco, y aquí hay 2,5 GB que la app presenta al usuario como
+/// de disco, y aquí hay 1 GB que la app presenta al usuario como
 /// instalados. Si el sistema los purgara, la traducción con IA dejaría de
 /// funcionar sin ninguna explicación.
 ///
@@ -26,7 +26,13 @@ nonisolated enum ModelStorage {
 
     /// ID del modelo que usa la app. Única fuente de verdad: `MLXEngine`
     /// lo toma como valor por defecto de su init.
-    static let modelID = "mlx-community/Qwen3-4B-Instruct-2507-4bit"
+    static let modelID = "mlx-community/Hy-MT2-1.8B-4bit"
+
+    /// Modelos que usaron versiones anteriores de la app. `prepare()` borra
+    /// sus pesos para que no queden gigas huérfanos tras cambiar de modelo.
+    private static let retiredModelIDs = [
+        "mlx-community/Qwen3-4B-Instruct-2507-4bit"
+    ]
 
     /// Raíz del caché de Hugging Face que usa la app. Es el directorio que
     /// contiene directamente las carpetas `models--org--nombre`, o sea el
@@ -49,7 +55,11 @@ nonisolated enum ModelStorage {
     /// Nombre de carpeta del repo dentro del caché, con el patrón que usa
     /// Hugging Face: `models--{org}--{nombre}`.
     private static var repoFolderName: String {
-        "models--" + modelID.replacingOccurrences(of: "/", with: "--")
+        folderName(for: modelID)
+    }
+
+    private static func folderName(for id: String) -> String {
+        "models--" + id.replacingOccurrences(of: "/", with: "--")
     }
 
     /// Carpeta donde viven los pesos del modelo.
@@ -66,7 +76,7 @@ nonisolated enum ModelStorage {
     /// Debe llamarse una vez al arrancar, **antes** de construir el
     /// `TranslationViewModel` (su init ya pregunta si el modelo está
     /// descargado). Es idempotente y barato: el traslado es un `rename`
-    /// dentro del mismo contenedor, no una copia de 2,5 GB.
+    /// dentro del mismo contenedor, no una copia de 1 GB.
     static func prepare() {
         do {
             try FileManager.default.createDirectory(
@@ -75,6 +85,7 @@ nonisolated enum ModelStorage {
             )
             try excludeFromBackup(hubCacheDirectory)
             try migrateFromLegacyLocation()
+            removeRetiredModels()
         } catch {
             // No es fatal: si algo falla, el peor caso es que el modelo se
             // vuelva a descargar. Lo dejamos en el log y seguimos.
@@ -100,8 +111,26 @@ nonisolated enum ModelStorage {
         log.notice("Modelo migrado de Library/Caches a Application Support")
     }
 
+    /// Borra los pesos de modelos retirados, en la ubicación actual y en la
+    /// heredada. Es best-effort: si falla, se reintenta en el próximo arranque.
+    private static func removeRetiredModels() {
+        let fm = FileManager.default
+        for id in retiredModelIDs {
+            for root in [hubCacheDirectory, legacyHubCacheDirectory] {
+                let folder = root.appendingPathComponent(folderName(for: id))
+                guard fm.fileExists(atPath: folder.path) else { continue }
+                do {
+                    try fm.removeItem(at: folder)
+                    log.notice("Eliminado modelo retirado \(id, privacy: .public)")
+                } catch {
+                    log.error("No se pudo eliminar el modelo retirado \(id, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                }
+            }
+        }
+    }
+
     /// Marca la carpeta para que Time Machine e iCloud no la copien: son
-    /// pesos re-descargables, no vale la pena meter 2,5 GB en cada backup.
+    /// pesos re-descargables, no vale la pena meter 1 GB en cada backup.
     private static func excludeFromBackup(_ url: URL) throws {
         var url = url
         var values = URLResourceValues()
