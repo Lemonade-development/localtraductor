@@ -55,7 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // versión que lo guardaba en Library/Caches, subirlo a Application
         // Support. Tiene que ir antes del ViewModel, cuyo init ya pregunta si
         // el modelo está descargado — si preguntara primero, vería la carpeta
-        // nueva vacía y le ofrecería al usuario re-descargar 2,5 GB que ya
+        // nueva vacía y le ofrecería al usuario re-descargar 1 GB que ya
         // tiene. El traslado es un rename dentro del contenedor, no una copia.
         ModelStorage.prepare()
 

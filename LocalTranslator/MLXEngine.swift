@@ -13,7 +13,7 @@ import OSLog
 /// en 4-bit sobre Apple Silicon.
 ///
 /// La primera vez que se carga, descarga los pesos del modelo desde
-/// Hugging Face (~2.5 GB para Qwen3-4B) y los guarda en caché local
+/// Hugging Face (~1 GB para Hy-MT2-1.8B) y los guarda en caché local
 /// dentro del contenedor de la app. Las siguientes veces, carga
 /// directamente desde disco.
 ///
@@ -42,7 +42,7 @@ actor MLXEngine: TranslationEngine {
     }
 
     /// Suelta la sesión (y con ella el modelo) para que MLX libere los
-    /// ~2.5 GB de RAM. Se usa al eliminar el modelo desde Configuración.
+    /// ~1 GB de RAM. Se usa al eliminar el modelo desde Configuración.
     func unload() {
         session = nil
         log.info("Modelo descargado de memoria")
@@ -78,33 +78,20 @@ actor MLXEngine: TranslationEngine {
         }
         log.info("Modelo cargado en memoria")
 
-        // 2) Parámetros de generación pensados para traducción:
-        //    - temperatura baja => salida estable y poco creativa.
-        //    - maxTokens generoso para textos largos.
+        // 2) Parámetros de generación recomendados por Tencent para
+        //    Hy-MT2 1.8B / 7B (ver README del repo Hy-MT2).
         let parameters = GenerateParameters(
-            maxTokens: 1024,
-            temperature: 0.2
+            maxTokens: 4096,
+            temperature: 0.7,
+            topP: 0.6,
+            topK: 20,
+            repetitionPenalty: 1.05
         )
 
-        // 3) Instrucciones de sistema: fuerzan al modelo a devolver
-        //    SOLO la traducción, sin comentarios ni comillas, y a respetar
-        //    los placeholders `⟦Cn⟧` que la app inyecta para proteger
-        //    código y URLs (ver `MarkdownCodePreserver`).
-        let systemInstructions = """
-        You are a precise translator. \
-        Output ONLY the translated text — no quotes, no explanations, \
-        no preamble, no language labels. Preserve the meaning, tone, \
-        punctuation and paragraph breaks of the original. \
-        Preserve markdown structure (headings, lists, bold, italic, links) \
-        verbatim — translate only the natural-language content inside. \
-        If you see placeholder tokens of the form ⟦C0⟧, ⟦C1⟧, ⟦C2⟧… \
-        copy them EXACTLY as-is into the output — do not translate, \
-        rename, reorder, expand or remove them.
-        """
-
+        // 3) Sin system prompt: Hy-MT2 está entrenado sin él y todas las
+        //    instrucciones van en el mensaje de usuario (ver `translate`).
         self.session = ChatSession(
             model,
-            instructions: systemInstructions,
             generateParameters: parameters
         )
     }
@@ -129,13 +116,19 @@ actor MLXEngine: TranslationEngine {
         // para que el modelo no use traducciones previas como contexto.
         await session.clear()
 
-        // Inyectamos la directiva de tono dentro del bloque de instrucciones
-        // del prompt de usuario (NO en el system prompt). De este modo
-        // cambiar de tono no obliga a reconstruir la `ChatSession`.
+        // Seguimos la plantilla oficial de Hy-MT2 ("Translate the following
+        // text into X. Note that you should only output the translated
+        // result…") y le añadimos el tono y las reglas para conservar
+        // markdown y los placeholders `⟦Cn⟧` que la app inyecta para
+        // proteger código y URLs (ver `MarkdownCodePreserver`).
         let toneClause = tone.instruction.map { " " + $0 } ?? ""
         let prompt = """
         Translate the following text from \(source.englishName) \
-        to \(target.englishName).\(toneClause) Output ONLY the translation.
+        into \(target.englishName).\(toneClause) \
+        Preserve markdown structure and paragraph breaks. \
+        Copy placeholder tokens like ⟦C0⟧, ⟦C1⟧ exactly as-is. \
+        Note that you should only output the translated result \
+        without any additional explanation:
 
         \(trimmed)
         """

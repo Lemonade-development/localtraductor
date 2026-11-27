@@ -71,7 +71,7 @@ final class TranslationViewModel {
     /// para desactivar la opción "IA local" cuando no hay modelo.
     var isModelDownloaded: Bool = false
 
-    /// Tamaño del modelo en disco ya formateado ("2,5 GB"). `nil` cuando
+    /// Tamaño del modelo en disco ya formateado ("1 GB"). `nil` cuando
     /// el modelo no está descargado.
     var modelSizeOnDisk: String?
 
@@ -188,7 +188,7 @@ final class TranslationViewModel {
         }
 
         // Liberamos también la copia en RAM: sin esto, borrar solo ahorraría
-        // disco pero el modelo seguiría ocupando ~2.5 GB de memoria.
+        // disco pero el modelo seguiría ocupando ~1 GB de memoria.
         Task { [llmEngine] in
             await llmEngine.unload()
         }
