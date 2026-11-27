@@ -5,7 +5,7 @@ Traductor privado para macOS que vive en la barra de menús. Corre un modelo de 
 ## Características
 
 - **Privacidad total** — La inferencia ocurre en tu Mac con [MLX](https://github.com/ml-explore/mlx-swift). Sin nube, sin cuentas, sin telemetría. Tras la descarga inicial del modelo funciona sin internet.
-- **Dos motores de traducción** — El modelo de IA local (matices, tonos, textos largos) o el traductor del sistema de macOS (framework Translation: instantáneo y ligero, también offline). Se cambia en Configuración; el modelo de IA se puede eliminar para liberar los ~2.5 GB y re-descargar cuando quieras.
+- **Dos motores de traducción** — El modelo de IA local (matices, tonos, textos largos) o el traductor del sistema de macOS (framework Translation: instantáneo y ligero, también offline). Se cambia en Configuración; el modelo de IA se puede eliminar para liberar ~1 GB y re-descargar cuando quieras.
 - **12 idiomas** — Inglés, español, francés, alemán, italiano, portugués, ruso, japonés, coreano, árabe y chino (simplificado y tradicional), con detección automática del idioma de origen (on-device, con `NLLanguageRecognizer`).
 - **Tonos de traducción** — Neutro, formal, casual o técnico: el registro de la salida se ajusta con un clic.
 - **Streaming** — La traducción aparece palabra a palabra según la genera el modelo.
@@ -20,7 +20,9 @@ Traductor privado para macOS que vive en la barra de menús. Corre un modelo de 
 
 ## El modelo
 
-La primera vez que abres la app, una pantalla de bienvenida descarga **Qwen3-4B Instruct cuantizado a 4-bit** (`mlx-community/Qwen3-4B-Instruct-2507-4bit`, ~2.5 GB) desde Hugging Face y lo guarda en el contenedor local de la app. Las siguientes aperturas cargan directo desde disco.
+La primera vez que abres la app, una pantalla de bienvenida descarga **Hy-MT2 1.8B cuantizado a 4-bit** (`mlx-community/Hy-MT2-1.8B-4bit`, ~1 GB) desde Hugging Face y lo guarda en el contenedor local de la app. Las siguientes aperturas cargan directo desde disco.
+
+[Hy-MT2](https://github.com/Tencent-Hunyuan/Hy-MT2) es una familia de modelos de Tencent entrenados específicamente para traducción, no un chat de propósito general. La app sigue su plantilla de prompt oficial y sus parámetros de muestreo recomendados.
 
 ## Requisitos
 
@@ -69,7 +71,7 @@ LocalTranslator/
 ├── TranslationViewModel.swift    Estado observable + orquestación (debounce, detección de idioma,
 │                                 preservación de código/markdown vía MarkdownCodePreserver)
 ├── TranslationEngine.swift       Protocolo del motor + tonos de traducción
-├── MLXEngine.swift               Motor real: actor que corre Qwen3-4B con MLX
+├── MLXEngine.swift               Motor real: actor que corre Hy-MT2 con MLX
 ├── AppleTranslationEngine.swift  Motor del sistema (framework Translation de macOS)
 ├── MockEngine.swift              Motor simulado para previews de SwiftUI
 ├── LanguageDownloadWindow.swift  Ventana del flujo de descarga de idiomas del sistema
@@ -106,4 +108,4 @@ NOTARY_PROFILE="mi-perfil" ./scripts/release.sh
 
 ## Historial de cambios
 
-Versión actual: **1.1.0**. El detalle de cada versión está en el [CHANGELOG](CHANGELOG.md).
+Versión actual: **1.2.0**. El detalle de cada versión está en el [CHANGELOG](CHANGELOG.md).

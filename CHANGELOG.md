@@ -2,6 +2,20 @@
 
 Historial de cambios de LocalTranslator. El formato sigue las ideas de [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [1.2.0] — 2026-11-27
+
+### Cambiado
+
+- **Nuevo modelo de IA local: [Hy-MT2 1.8B](https://github.com/Tencent-Hunyuan/Hy-MT2)** (`mlx-community/Hy-MT2-1.8B-4bit`), de Tencent, sustituye a Qwen3-4B. Es un modelo entrenado específicamente para traducción y pesa **~1 GB en lugar de ~2.5 GB**: la descarga es más rápida y consume menos disco y RAM.
+- El prompt sigue la plantilla oficial de Hy-MT2, sin system prompt; el tono y la preservación de markdown y placeholders de código van en el mensaje de usuario. Los parámetros de muestreo son los que recomienda Tencent (temperatura 0.7, top_p 0.6, top_k 20, penalización por repetición 1.05).
+- Textos de la bienvenida actualizados con el nuevo modelo, su tamaño y un tiempo estimado de descarga más corto.
+- `mlx-swift-lm` sube a 3.33.0, la primera versión que soporta la arquitectura `hunyuan_v1_dense`.
+
+### Si vienes de una versión anterior
+
+- **Hay que descargar el modelo nuevo (~1 GB)**: si usas el motor "IA local", la descarga empieza sola al abrir la app; si usas "Sistema (Apple)", puedes descargarlo cuando quieras desde Configuración.
+- **Qwen3-4B se borra solo** al arrancar, para no dejar 2.5 GB huérfanos en disco.
+
 ## [1.1.0] — 2026-09-16
 
 Primera versión que se distribuye como `.dmg`.
